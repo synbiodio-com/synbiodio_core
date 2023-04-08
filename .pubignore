@@ -1,0 +1,23 @@
+# exclude all test file
+*_test.dart
+
+# exclude .git folder
+.git/
+
+# exclude .idea
+*.idea/
+
+# exclude example
+example/
+
+#
+build/
+
+# exclude coverage
+coverage/
+
+#
+publish.sh
+
+#
+analysis_options.yaml
