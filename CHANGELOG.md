@@ -1,4 +1,9 @@
 
+# 0.0.5
+
+- feat: add where function
+
+
 # 0.0.4
 
 - feat: add baseRepository

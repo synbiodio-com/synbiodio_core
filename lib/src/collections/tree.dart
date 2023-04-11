@@ -139,6 +139,34 @@ abstract class TreeNode<E extends TreeNode<E>> {
   void replaceBy(E element, {bool skipChildren = true}) {
     _replace(element, skipChildren: skipChildren);
   }
+
+  /// 查找指定元素
+  List<E>? where(bool Function(E element) test) {
+    return _where(root, test);
+  }
+
+  List<E>? _where(E currentElement, bool Function(E element) test) {
+    final result = <E>[];
+    final testResult = test(currentElement);
+    if (testResult) {
+      result.add(currentElement);
+    }
+
+    if (currentElement.children != null) {
+      final childResult = currentElement.children!.fold<List<E>>(<E>[], (
+          previousValue,
+          element,
+          ) {
+        final childWhereResult = _where(element, test);
+        if (childWhereResult != null) {
+          previousValue.addAll(childWhereResult);
+        }
+        return previousValue;
+      });
+      result.addAll(childResult);
+    }
+    return result;
+  }
 }
 
 ///
