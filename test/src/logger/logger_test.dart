@@ -7,13 +7,16 @@ void main() async {
     test('Logger', () {
       LoggerFactory.init(environment: Environment(envType: EnvType.dev));
       final logger1 = Logger(scene: LoggerScene.complete)
+        ..verbose('verbose')
+        ..debug('debug')
         ..info('info')
         ..warn('warning')
         ..error('error')
-        ..debug('debug');
+        ..wtf('wtf');
       final logger2 = Logger(scene: LoggerScene.complete);
 
       expect(logger1 == logger2, true);
+      expect(logger1.hashCode == logger2.hashCode, true);
     });
   });
 }
