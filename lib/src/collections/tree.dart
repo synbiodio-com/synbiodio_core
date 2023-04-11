@@ -3,32 +3,43 @@ import 'dart:math';
 /// 树节点
 abstract class TreeNode<E extends TreeNode<E>> {
   ///
-  TreeNode({List<E>? children}) : _children = children;
-
-  List<E>? _children;
+  TreeNode({List<E>? children}) : _children = children {
+    _children?.forEach((e) {
+      e._parent = this as E;
+    });
+  }
 
   /// 父节点
   E? get parent => _parent;
   E? _parent;
 
-  /// 前一个节点
-  E? get previous => _previous;
-  E? _previous;
-
-  /// 后一个节点
-  E? get next => _next;
-  E? _next;
-
-  /// 根节点
-  E get root => _parent == null ? this as E : _parent!.root;
-
   /// 获取子节点列表
   List<E>? get children => _children;
+  List<E>? _children;
 
-  /// 是否为第一个节点
+  /// 获取当前节点的上一个节点
+  E? get previous {
+    if (_parent == null) {
+      return null;
+    }
+    return _parent!._nodeBefore(this as E);
+  }
+
+  /// 获取当前节点的下一个节点
+  E? get next {
+    if (_parent == null) {
+      return null;
+    }
+    return _parent!._nodeAfter(this as E);
+  }
+
+  /// 获取本树结构的根节点
+  E get root => _parent == null ? this as E : _parent!.root;
+
+  /// 当前节点是否为兄弟节点中的第一个节点
   bool get isHead => previous == null;
 
-  /// 是否为最后一个节点
+  /// 当前节点是否为兄弟节点中的最后一个节点
   bool get isTail => next == null;
 
   /// 叶子节点的个数
@@ -62,6 +73,33 @@ abstract class TreeNode<E extends TreeNode<E>> {
   void add(E e) {
     _children ??= [];
     _children!.add(e);
+    e._parent = this as E;
+  }
+
+  /// 在children上查找child节点，并返回child节点的后一个节点
+  E? _nodeAfter(E child) {
+    if (_children?.isEmpty ?? true) {
+      return null;
+    }
+
+    final targetIndex = _children!.indexOf(child);
+    if (targetIndex == -1 || targetIndex == _children!.length - 1) {
+      return null;
+    }
+    return _children![targetIndex + 1];
+  }
+
+  /// 在children上查找child节点，并返回child节点的前一个节点
+  E? _nodeBefore(E child) {
+    if (_children?.isEmpty ?? true) {
+      return null;
+    }
+
+    final targetIndex = _children!.indexOf(child);
+    if (targetIndex == -1 || targetIndex == 0) {
+      return null;
+    }
+    return _children![targetIndex - 1];
   }
 
   /// 判断e是否为自己的祖先
@@ -86,18 +124,11 @@ abstract class TreeNode<E extends TreeNode<E>> {
       element._parent = _parent;
       _parent = null;
     }
-    if (_previous != null) {
-      _previous!._next = element;
-      element._previous = _previous;
-      _previous = null;
-    }
-    if (_next != null) {
-      _next!._previous = element;
-      element._next = _next;
-      _next = null;
-    }
     if (skipChildren) {
       element._children = _children;
+      element._children?.forEach((child) {
+        child._parent = element;
+      });
       _children = null;
     }
   }
