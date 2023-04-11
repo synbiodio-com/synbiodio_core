@@ -18,6 +18,7 @@ coverage/
 
 #
 publish.sh
+very_good_test.sh
 
 #
 analysis_options.yaml
