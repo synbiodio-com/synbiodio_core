@@ -1,4 +1,8 @@
 
+# 0.0.4
+
+- feat: add baseRepository
+
 # 0.0.3
 
 - feat: Remove _previous and _next and get it from _parent instead
