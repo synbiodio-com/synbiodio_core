@@ -22,7 +22,8 @@ void main() {
       final node111 = TreeTest(name: 'node11');
       final node112 = TreeTest(name: 'node112');
       final node113 = TreeTest(name: 'node113');
-      final node11 = TreeTest(name: 'node11', children: [node111, node112, node113]);
+      final node11 =
+          TreeTest(name: 'node11', children: [node111, node112, node113]);
       final node1 = TreeTest(name: 'node1', children: [node11]);
       final root = TreeTest(name: 'root', children: [node1]);
 
@@ -43,14 +44,15 @@ void main() {
       expect(node11.isMyAncestor(node2), isFalse);
 
       final where1 = node11.where((element) => element.name == 'node112');
-      expect(listEquals(where1, [node112]) , true);
+      expect(listEquals(where1, [node112]), true);
 
       final where2 = node11.where((element) => element.name == 'root');
-      expect(where2?.isEmpty ?? false , true);
+      expect(where2?.isEmpty ?? false, true);
 
-      final where3 = node11.where((element) => RegExp('^node').hasMatch(element.name));
+      final where3 =
+          node11.where((element) => RegExp('^node').hasMatch(element.name));
 
-      expect(where3 , unorderedMatches([node11, node111, node112, node113]));
+      expect(where3, unorderedMatches([node11, node111, node112, node113]));
     });
 
     test('link list is ok', () {
@@ -101,7 +103,8 @@ void main() {
       final node111 = TreeTest(name: 'node11');
       final node112 = TreeTest(name: 'node112');
       final node113 = TreeTest(name: 'node113');
-      final node11 = TreeTest(name: 'node11', children: [node111, node112, node113]);
+      final node11 =
+          TreeTest(name: 'node11', children: [node111, node112, node113]);
       final node1 = TreeTest(name: 'node1', children: [node11]);
       final root = TreeTest(name: 'root', children: [node1]);
 

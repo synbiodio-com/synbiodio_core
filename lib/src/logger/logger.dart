@@ -58,7 +58,8 @@ class LoggerFactory {
   /// 获取一个logger实例
   logger.Logger getLogger(LoggerScene? scene) {
     final effectiveScene = scene ?? LoggerScene.none;
-    final options = (_scene2OptionsMapper ?? _defaultMapper).call(effectiveScene);
+    final options =
+        (_scene2OptionsMapper ?? _defaultMapper).call(effectiveScene);
     return _map.putIfAbsent(effectiveScene, () => _buildWithOptions(options));
   }
 
@@ -111,7 +112,8 @@ class _Logger extends Logger {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) || other is _Logger && _logger == other._logger;
+    return identical(this, other) ||
+        other is _Logger && _logger == other._logger;
   }
 
   @override

@@ -1,4 +1,3 @@
-
 import 'package:synbiodio_core/src/logger/logger.dart';
 
 /// 仓库基类
