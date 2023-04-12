@@ -1,6 +1,6 @@
 name: synbiodio_core
 description: The Core of Synbiodio. This package is the core package under synbiodio, which encapsulates the underlying common functions.
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/synbiodio-com/synbiodio_core
 
 environment:

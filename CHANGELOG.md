@@ -1,4 +1,8 @@
 
+# 0.0.7
+
+- handle some contingencies
+
 # 0.0.6
 
 - fix where function and add test code
