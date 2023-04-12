@@ -7,9 +7,6 @@
 # exclude .idea
 *.idea/
 
-# exclude example
-example/
-
 #
 build/
 
