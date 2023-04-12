@@ -140,24 +140,22 @@ abstract class TreeNode<E extends TreeNode<E>> {
     _replace(element, skipChildren: skipChildren);
   }
 
-  /// 查找指定元素
+  /// 查找符合条件的元素
+  ///
+  /// [test] 查找条件
   List<E>? where(bool Function(E element) test) {
-    return _where(root, test);
-  }
-
-  List<E>? _where(E currentElement, bool Function(E element) test) {
     final result = <E>[];
-    final testResult = test(currentElement);
+    final testResult = test(this as E);
     if (testResult) {
-      result.add(currentElement);
+      result.add(this as E);
     }
 
-    if (currentElement.children != null) {
-      final childResult = currentElement.children!.fold<List<E>>(<E>[], (
-          previousValue,
-          element,
-          ) {
-        final childWhereResult = _where(element, test);
+    if (_children != null) {
+      final childResult = _children!.fold<List<E>>(<E>[], (
+        previousValue,
+        element,
+      ) {
+        final childWhereResult = element.where(test);
         if (childWhereResult != null) {
           previousValue.addAll(childWhereResult);
         }

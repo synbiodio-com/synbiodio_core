@@ -6,6 +6,7 @@
 // https://opensource.org/licenses/MIT.
 
 // ignore_for_file: prefer_const_constructors
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:synbiodio_core/src/collections/tree.dart';
 
@@ -38,8 +39,18 @@ void main() {
       expect(root.leafCount, 4);
       expect(root.maxDeep, 3);
 
-      expect(node11.isMyAncestor(node1), true);
-      expect(node11.isMyAncestor(node2), false);
+      expect(node11.isMyAncestor(node1), isTrue);
+      expect(node11.isMyAncestor(node2), isFalse);
+
+      final where1 = node11.where((element) => element.name == 'node112');
+      expect(listEquals(where1, [node112]) , true);
+
+      final where2 = node11.where((element) => element.name == 'root');
+      expect(where2?.isEmpty ?? false , true);
+
+      final where3 = node11.where((element) => RegExp('^node').hasMatch(element.name));
+
+      expect(where3 , unorderedMatches([node11, node111, node112, node113]));
     });
 
     test('link list is ok', () {
