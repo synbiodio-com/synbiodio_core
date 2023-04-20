@@ -1,66 +1,79 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart' as logger;
 import 'package:synbiodio_core/src/core/core.dart';
+import 'package:synbiodio_core/src/logger/filter/allow_filter.dart';
+import 'package:synbiodio_core/src/logger/filter/forbidden_filter.dart';
 
-/// scene转options的mapper
-typedef Scene2OptionsMapper = LoggerOptions Function(LoggerScene scene);
+export 'filter/allow_filter.dart';
+export 'filter/forbidden_filter.dart';
 
 /// Logger
 @immutable
 abstract class Logger {
   ///
-  factory Logger({LoggerScene? scene}) => _Logger._(scene: scene);
+  factory Logger({LoggerOptions? options}) => _Logger._(options: options);
 
   const Logger._();
 
   /// Log a message at level [logger.Level.verbose].
-  void verbose(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void verbose(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.debug].
-  void debug(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void debug(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.info].
-  void info(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void info(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.warning].
-  void warn(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void warn(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.error].
-  void error(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void error(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.wtf].
-  void wtf(dynamic message, [dynamic error, StackTrace? stackTrace]);
+  void wtf(String message, [dynamic error, StackTrace? stackTrace]);
 }
 
 /// 日志工厂
 class LoggerFactory {
-  LoggerFactory._internal() : _map = <LoggerScene, logger.Logger>{};
+  LoggerFactory._internal() : _map = <LoggerOptions, logger.Logger>{};
 
-  final Map<LoggerScene, logger.Logger> _map;
+  final Map<LoggerOptions, logger.Logger> _map;
 
   static final LoggerFactory _instance = LoggerFactory._internal();
 
   /// 环境信息
   Environment? _environment;
 
-  /// scene转options的mapper
-  Scene2OptionsMapper? _scene2OptionsMapper;
+  /// 白名单
+  AllowFilter? _allowFilter;
+
+  /// 黑名单
+  ForbiddenFilter? _forbiddenFilter;
 
   /// 初始化
   static void init({
     required Environment environment,
-    Scene2OptionsMapper? mapper,
+    AllowFilter? allowFilter,
+    ForbiddenFilter? forbiddenFilter,
   }) {
+    assert(
+      allowFilter == null || forbiddenFilter == null,
+      'At least one of allowFilter and forbiddenFilter should be empty!',
+    );
+
+    _instance._allowFilter ??= allowFilter;
+    _instance._forbiddenFilter ??= forbiddenFilter;
     _instance._environment ??= environment;
-    _instance._scene2OptionsMapper ??= mapper;
   }
 
   /// 获取一个logger实例
-  logger.Logger getLogger(LoggerScene? scene) {
-    final effectiveScene = scene ?? LoggerScene.none;
-    final options =
-        (_scene2OptionsMapper ?? _defaultMapper).call(effectiveScene);
-    return _map.putIfAbsent(effectiveScene, () => _buildWithOptions(options));
+  logger.Logger getLogger(LoggerOptions? options) {
+    final effectiveOptions = options ?? const LoggerOptions();
+    return _map.putIfAbsent(
+      effectiveOptions,
+      () => _buildWithOptions(effectiveOptions),
+    );
   }
 
   logger.Logger _buildWithOptions(LoggerOptions options) {
@@ -69,45 +82,57 @@ class LoggerFactory {
       methodCount: options.stackTraceTranslate + options.methodCount,
     );
 
-    return logger.Logger(printer: printer);
+    logger.LogFilter? filter;
+    if (_allowFilter != null) {
+      filter = _allowFilter;
+    } else if (_forbiddenFilter != null) {
+      filter = _forbiddenFilter;
+    } else {
+      filter = null;
+    }
+
+    return logger.Logger(printer: printer, filter: filter);
   }
 }
 
 class _Logger extends Logger {
-  _Logger._({LoggerScene? scene})
-      : _logger = LoggerFactory._instance.getLogger(scene),
+  _Logger._({LoggerOptions? options})
+      : _logger = LoggerFactory._instance.getLogger(options),
+        module = options?.module ?? Module.common,
         super._();
 
   final logger.Logger _logger;
 
+  final Module module;
+
   @override
-  void verbose(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.v(message, error, stackTrace);
+  void verbose(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.v('${module.name} $message', error, stackTrace);
   }
 
   @override
-  void debug(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.d(message, error, stackTrace);
+  void debug(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.d('${module.name} $message', error, stackTrace);
   }
 
   @override
-  void info(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.i(message, error, stackTrace);
+  void info(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.i('${module.name} $message', error, stackTrace);
   }
 
   @override
-  void warn(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.w(message, error, stackTrace);
+  void warn(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.w('${module.name} $message', error, stackTrace);
   }
 
   @override
-  void error(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.e(message, error, stackTrace);
+  void error(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.e('${module.name} $message', error, stackTrace);
   }
 
   @override
-  void wtf(dynamic message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.wtf(message, error, stackTrace);
+  void wtf(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.wtf('${module.name} $message', error, stackTrace);
   }
 
   @override
@@ -121,11 +146,13 @@ class _Logger extends Logger {
 }
 
 /// 日志的参数
+@immutable
 class LoggerOptions {
   ///
-  LoggerOptions({
+  const LoggerOptions({
     this.methodCount = 2,
     this.stackTraceTranslate = 1,
+    this.module,
   });
 
   /// 堆栈开始的偏移量
@@ -133,17 +160,19 @@ class LoggerOptions {
 
   /// 记录调用方法层级
   final int methodCount;
+
+  /// 模块
+  final Module? module;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LoggerOptions &&
+        other.methodCount == methodCount &&
+        other.stackTraceTranslate == stackTraceTranslate &&
+        other.module == module;
+  }
+
+  @override
+  int get hashCode => Object.hash(methodCount, stackTraceTranslate, module);
 }
-
-/// 日志器参数
-enum LoggerScene {
-  /// 完整的log
-  complete,
-
-  /// 没有scene
-  none,
-}
-
-Scene2OptionsMapper _defaultMapper = (scene) {
-  return LoggerOptions();
-};

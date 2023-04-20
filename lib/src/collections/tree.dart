@@ -1,8 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+
 /// 树节点
 abstract class TreeNode<E extends TreeNode<E>> {
   ///
+  @mustCallSuper
   TreeNode({List<E>? children}) : _children = children {
     _children?.forEach((e) {
       e._parent = this as E;

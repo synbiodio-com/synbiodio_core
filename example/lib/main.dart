@@ -51,7 +51,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  final logger = Logger(scene: LoggerScene.complete);
+  final logger = Logger(options: const LoggerOptions());
 
   void _incrementCounter() {
     logger.debug('_incrementCounter');
