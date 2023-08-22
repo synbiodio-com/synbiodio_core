@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart' as logger;
+import 'package:path_provider/path_provider.dart';
 import 'package:synbiodio_core/src/core/core.dart';
 import 'package:synbiodio_core/src/logger/filter/allow_filter.dart';
 import 'package:synbiodio_core/src/logger/filter/forbidden_filter.dart';
@@ -51,12 +55,14 @@ class LoggerFactory {
   /// 黑名单
   ForbiddenFilter? _forbiddenFilter;
 
+  String? _logFilePath;
+
   /// 初始化
-  static void init({
+  static Future<void> init({
     required Environment environment,
     AllowFilter? allowFilter,
     ForbiddenFilter? forbiddenFilter,
-  }) {
+  }) async {
     assert(
       allowFilter == null || forbiddenFilter == null,
       'At least one of allowFilter and forbiddenFilter should be empty!',
@@ -65,6 +71,22 @@ class LoggerFactory {
     _instance._allowFilter ??= allowFilter;
     _instance._forbiddenFilter ??= forbiddenFilter;
     _instance._environment ??= environment;
+    final directory = Platform.isAndroid
+        ? await getExternalStorageDirectory()
+        : await getDownloadsDirectory();
+    try {
+      if (directory != null) {
+        final now = DateTime.now();
+        final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
+        _instance._logFilePath ??= '${directory.path}/$fileName';
+        final file = File(_instance._logFilePath!);
+        await file.create(recursive: true);
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
   }
 
   /// 获取一个logger实例
@@ -77,10 +99,28 @@ class LoggerFactory {
   }
 
   logger.Logger _buildWithOptions(LoggerOptions options) {
-    final printer = logger.PrettyPrinter(
-      stackTraceBeginIndex: options.stackTraceTranslate,
-      methodCount: options.stackTraceTranslate + options.methodCount,
+    var debug = false;
+    assert(
+      () {
+        debug = true;
+        return true;
+      }(),
+      '',
     );
+
+    logger.LogOutput? fileOutput;
+    logger.LogPrinter? printer;
+    if (debug) {
+      printer = logger.PrettyPrinter(
+        stackTraceBeginIndex: options.stackTraceTranslate,
+        methodCount: options.stackTraceTranslate + options.methodCount,
+      );
+    } else if (_logFilePath != null) {
+      printer = logger.SimplePrinter(printTime: true);
+      fileOutput = logger.FileOutput(file: File(_logFilePath!));
+    } else {
+      printer = null;
+    }
 
     logger.LogFilter? filter;
     if (_allowFilter != null) {
@@ -91,7 +131,7 @@ class LoggerFactory {
       filter = null;
     }
 
-    return logger.Logger(printer: printer, filter: filter);
+    return logger.Logger(printer: printer, filter: filter, output: fileOutput);
   }
 }
 
@@ -107,32 +147,32 @@ class _Logger extends Logger {
 
   @override
   void verbose(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.v('${module.name} $message', error, stackTrace);
+    _logger.v('[${module.name}] $message', error, stackTrace);
   }
 
   @override
   void debug(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.d('${module.name} $message', error, stackTrace);
+    _logger.d('[${module.name}] $message', error, stackTrace);
   }
 
   @override
   void info(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.i('${module.name} $message', error, stackTrace);
+    _logger.i('[${module.name}] $message', error, stackTrace);
   }
 
   @override
   void warn(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.w('${module.name} $message', error, stackTrace);
+    _logger.w('[${module.name}] $message', error, stackTrace);
   }
 
   @override
   void error(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.e('${module.name} $message', error, stackTrace);
+    _logger.e('[${module.name}] $message', error, stackTrace);
   }
 
   @override
   void wtf(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.wtf('${module.name} $message', error, stackTrace);
+    _logger.wtf('[${module.name}] $message', error, stackTrace);
   }
 
   @override
