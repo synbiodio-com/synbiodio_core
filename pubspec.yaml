@@ -11,12 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ^0.18.0
-  logger: ^1.0.0
+  logger: ^2.0.0
   path_provider: ^2.1.0
   uuid: ^3.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  mocktail: ^0.3.0
+  mocktail: ^1.0.0
   very_good_analysis: ^5.0.0+1

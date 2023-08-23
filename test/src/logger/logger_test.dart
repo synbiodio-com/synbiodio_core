@@ -10,12 +10,12 @@ void main() async {
         environment: Environment(envType: EnvType.dev),
       );
       final logger1 = Logger(options: const LoggerOptions())
-        ..verbose('verbose')
+        ..trace('verbose')
         ..debug('debug')
         ..info('info')
         ..warn('warning')
         ..error('error')
-        ..wtf('wtf');
+        ..fatal('wtf');
       final logger2 = Logger(options: const LoggerOptions());
 
       expect(logger1 == logger2, true);
@@ -41,9 +41,9 @@ void main() async {
         options: const LoggerOptions(module: Module(name: 'a/b/c/d')),
       );
       final commonLogger = Logger(options: const LoggerOptions());
-      aLogger.verbose('byebye');
-      abcLogger.verbose('hello synbiodio');
-      abcdLogger.verbose('hello synbiodio');
+      aLogger.trace('byebye');
+      abcLogger.trace('hello synbiodio');
+      abcdLogger.trace('hello synbiodio');
       commonLogger.error(
         '上面应该有两个 verbose 级别的"hello synbiodio"， 分别是a/b/c模块和a/b/c/d模块的， 不应该有a模块的"byebye"',
       );
@@ -68,9 +68,9 @@ void main() async {
         options: const LoggerOptions(module: Module(name: 'a/b/c/d')),
       );
       final commonLogger = Logger(options: const LoggerOptions());
-      aLogger.verbose('I will be back');
-      abcLogger.verbose('hello synbiodio');
-      abcdLogger.verbose('hello synbiodio');
+      aLogger.trace('I will be back');
+      abcLogger.trace('hello synbiodio');
+      abcdLogger.trace('hello synbiodio');
 
       commonLogger.error('上面应该只有一行a模块的"I will be back"');
     });

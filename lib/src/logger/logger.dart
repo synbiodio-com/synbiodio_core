@@ -19,8 +19,8 @@ abstract class Logger {
 
   const Logger._();
 
-  /// Log a message at level [logger.Level.verbose].
-  void verbose(String message, [dynamic error, StackTrace? stackTrace]);
+  /// Log a message at level [logger.Level.trace].
+  void trace(String message, [dynamic error, StackTrace? stackTrace]);
 
   /// Log a message at level [logger.Level.debug].
   void debug(String message, [dynamic error, StackTrace? stackTrace]);
@@ -34,8 +34,8 @@ abstract class Logger {
   /// Log a message at level [logger.Level.error].
   void error(String message, [dynamic error, StackTrace? stackTrace]);
 
-  /// Log a message at level [logger.Level.wtf].
-  void wtf(String message, [dynamic error, StackTrace? stackTrace]);
+  /// Log a message at level [logger.Level.fatal].
+  void fatal(String message, [dynamic error, StackTrace? stackTrace]);
 }
 
 /// 日志工厂
@@ -71,23 +71,22 @@ class LoggerFactory {
     _instance._allowFilter ??= allowFilter;
     _instance._forbiddenFilter ??= forbiddenFilter;
     _instance._environment ??= environment;
-    final directory = Platform.isAndroid
-        ? await getExternalStorageDirectory()
-        : await getDownloadsDirectory();
+    final directory = await getApplicationDocumentsDirectory();
     try {
-      if (directory != null) {
-        final now = DateTime.now();
-        final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
-        _instance._logFilePath ??= '${directory.path}/$fileName';
-        final file = File(_instance._logFilePath!);
-        await file.create(recursive: true);
-      }
+      final now = DateTime.now();
+      final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
+      _instance._logFilePath ??= '${directory.path}/$fileName';
+      final file = File(_instance._logFilePath!);
+      await file.create(recursive: true);
     } catch (e) {
       if (kDebugMode) {
         print(e);
       }
     }
   }
+
+  /// log 文件存放位置
+  static String? get logFilePath => _instance._logFilePath;
 
   /// 获取一个logger实例
   logger.Logger getLogger(LoggerOptions? options) {
@@ -114,9 +113,10 @@ class LoggerFactory {
       printer = logger.PrettyPrinter(
         stackTraceBeginIndex: options.stackTraceTranslate,
         methodCount: options.stackTraceTranslate + options.methodCount,
+        colors: false,
       );
     } else if (_logFilePath != null) {
-      printer = logger.SimplePrinter(printTime: true);
+      printer = logger.SimplePrinter(printTime: true, colors: false);
       fileOutput = logger.FileOutput(file: File(_logFilePath!));
     } else {
       printer = null;
@@ -146,33 +146,57 @@ class _Logger extends Logger {
   final Module module;
 
   @override
-  void verbose(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.v('[${module.name}] $message', error, stackTrace);
+  void trace(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.t(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override
   void debug(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.d('[${module.name}] $message', error, stackTrace);
+    _logger.d(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override
   void info(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.i('[${module.name}] $message', error, stackTrace);
+    _logger.i(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override
   void warn(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.w('[${module.name}] $message', error, stackTrace);
+    _logger.w(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override
   void error(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.e('[${module.name}] $message', error, stackTrace);
+    _logger.e(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override
-  void wtf(String message, [dynamic error, StackTrace? stackTrace]) {
-    _logger.wtf('[${module.name}] $message', error, stackTrace);
+  void fatal(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.f(
+      '[${module.name}] $message',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   @override

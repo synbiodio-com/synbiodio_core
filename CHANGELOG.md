@@ -1,3 +1,8 @@
+# 0.3.0
+
+- upgrade logger
+- add `logFilePath` method to `LoggerFactory`
+
 # 0.2.0
 
 - trace log to file
