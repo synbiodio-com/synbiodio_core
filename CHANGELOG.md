@@ -1,3 +1,6 @@
+
+- modify console level
+
 # 0.3.3
 
 - debug mode not trace to log file, only trace to console. And not create log file also.

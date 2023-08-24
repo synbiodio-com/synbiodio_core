@@ -57,6 +57,9 @@ class LoggerFactory {
 
   String? _logFilePath;
 
+  logger.LogOutput? _output;
+  logger.LogPrinter? _printer;
+
   /// 初始化
   static Future<void> init({
     required Environment environment,
@@ -108,30 +111,29 @@ class LoggerFactory {
   }
 
   logger.Logger _buildWithOptions(LoggerOptions options) {
-    logger.LogOutput? output;
-    logger.LogPrinter? printer;
     if (_logFilePath != null) {
-      printer = logger.SimplePrinter(printTime: true, colors: false);
-      output = logger.FileOutput(file: File(_logFilePath!));
+      _printer ??= logger.SimplePrinter(printTime: true, colors: false);
+      _output ??= logger.FileOutput(file: File(_logFilePath!));
     } else {
-      printer = logger.PrettyPrinter(
+      _printer ??= logger.PrettyPrinter(
         stackTraceBeginIndex: options.stackTraceTranslate,
         methodCount: options.stackTraceTranslate + options.methodCount,
         colors: false,
       );
-      output = logger.ConsoleOutput();
+      _output ??= logger.ConsoleOutput();
     }
 
     logger.LogFilter? filter;
-    if (_allowFilter != null) {
+    if (_allowFilter != null && _logFilePath == null) {
       filter = _allowFilter;
-    } else if (_forbiddenFilter != null) {
+    } else if (_forbiddenFilter != null && _logFilePath == null) {
       filter = _forbiddenFilter;
     } else {
-      filter = logger.ProductionFilter();
+      filter = logger.ProductionFilter()
+        ..level = kReleaseMode ? logger.Level.info : logger.Level.debug;
     }
 
-    return logger.Logger(printer: printer, filter: filter, output: output);
+    return logger.Logger(printer: _printer, filter: filter, output: _output);
   }
 }
 
