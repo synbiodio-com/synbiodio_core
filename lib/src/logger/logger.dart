@@ -107,7 +107,7 @@ class LoggerFactory {
       '',
     );
 
-    logger.LogOutput? fileOutput;
+    logger.LogOutput? output;
     logger.LogPrinter? printer;
     if (debug) {
       printer = logger.PrettyPrinter(
@@ -115,13 +115,13 @@ class LoggerFactory {
         methodCount: options.stackTraceTranslate + options.methodCount,
         colors: false,
       );
-      fileOutput = logger.MultiOutput([
+      output = logger.MultiOutput([
         logger.ConsoleOutput(),
         logger.FileOutput(file: File(_logFilePath!)),
       ]);
     } else if (_logFilePath != null) {
       printer = logger.SimplePrinter(printTime: true, colors: false);
-      fileOutput = logger.FileOutput(file: File(_logFilePath!));
+      output = logger.FileOutput(file: File(_logFilePath!));
     } else {
       printer = null;
     }
@@ -132,10 +132,10 @@ class LoggerFactory {
     } else if (_forbiddenFilter != null) {
       filter = _forbiddenFilter;
     } else {
-      filter = null;
+      filter = logger.ProductionFilter();
     }
 
-    return logger.Logger(printer: printer, filter: filter, output: fileOutput);
+    return logger.Logger(printer: printer, filter: filter, output: output);
   }
 }
 

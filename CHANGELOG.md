@@ -1,3 +1,7 @@
+# 0.3.2
+
+- fix bug: log can't output to file in production mode.
+
 # 0.3.1
 
 - Logs output to both file and console in debug mode.
