@@ -1,3 +1,7 @@
+# 0.3.3
+
+- debug mode not trace to log file, only trace to console. And not create log file also.
+
 # 0.3.2
 
 - fix bug: log can't output to file in production mode.

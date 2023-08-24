@@ -71,16 +71,26 @@ class LoggerFactory {
     _instance._allowFilter ??= allowFilter;
     _instance._forbiddenFilter ??= forbiddenFilter;
     _instance._environment ??= environment;
-    final directory = await getApplicationDocumentsDirectory();
-    try {
-      final now = DateTime.now();
-      final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
-      _instance._logFilePath ??= '${directory.path}/$fileName';
-      final file = File(_instance._logFilePath!);
-      await file.create(recursive: true);
-    } catch (e) {
-      if (kDebugMode) {
-        print(e);
+
+    var createLogFile = true;
+    // ignore: prefer_asserts_with_message
+    assert(() {
+      createLogFile = false;
+      return true;
+    }());
+
+    if (createLogFile) {
+      final directory = await getApplicationDocumentsDirectory();
+      try {
+        final now = DateTime.now();
+        final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
+        _instance._logFilePath ??= '${directory.path}/$fileName';
+        final file = File(_instance._logFilePath!);
+        await file.create(recursive: true);
+      } catch (e) {
+        if (kDebugMode) {
+          print(e);
+        }
       }
     }
   }
@@ -98,32 +108,18 @@ class LoggerFactory {
   }
 
   logger.Logger _buildWithOptions(LoggerOptions options) {
-    var debug = false;
-    assert(
-      () {
-        debug = true;
-        return true;
-      }(),
-      '',
-    );
-
     logger.LogOutput? output;
     logger.LogPrinter? printer;
-    if (debug) {
+    if (_logFilePath != null) {
+      printer = logger.SimplePrinter(printTime: true, colors: false);
+      output = logger.FileOutput(file: File(_logFilePath!));
+    } else {
       printer = logger.PrettyPrinter(
         stackTraceBeginIndex: options.stackTraceTranslate,
         methodCount: options.stackTraceTranslate + options.methodCount,
         colors: false,
       );
-      output = logger.MultiOutput([
-        logger.ConsoleOutput(),
-        logger.FileOutput(file: File(_logFilePath!)),
-      ]);
-    } else if (_logFilePath != null) {
-      printer = logger.SimplePrinter(printTime: true, colors: false);
-      output = logger.FileOutput(file: File(_logFilePath!));
-    } else {
-      printer = null;
+      output = logger.ConsoleOutput();
     }
 
     logger.LogFilter? filter;
