@@ -115,6 +115,10 @@ class LoggerFactory {
         methodCount: options.stackTraceTranslate + options.methodCount,
         colors: false,
       );
+      fileOutput = logger.MultiOutput([
+        logger.ConsoleOutput(),
+        logger.FileOutput(file: File(_logFilePath!)),
+      ]);
     } else if (_logFilePath != null) {
       printer = logger.SimplePrinter(printTime: true, colors: false);
       fileOutput = logger.FileOutput(file: File(_logFilePath!));
