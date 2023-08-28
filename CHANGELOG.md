@@ -1,3 +1,6 @@
+
+- move log files to the directory which names logs in the Application Documents Directory.
+
 # 0.3.4
 
 - modify console level

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:logger/logger.dart' as logger;
+import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:synbiodio_core/src/core/core.dart';
 import 'package:synbiodio_core/src/logger/filter/allow_filter.dart';
@@ -55,7 +56,10 @@ class LoggerFactory {
   /// 黑名单
   ForbiddenFilter? _forbiddenFilter;
 
-  String? _logFilePath;
+  /// 日志文件所在目录
+  Directory? _logFileDirectory;
+
+  File? _logFile;
 
   logger.LogOutput? _output;
   logger.LogPrinter? _printer;
@@ -85,11 +89,12 @@ class LoggerFactory {
     if (createLogFile) {
       final directory = await getApplicationDocumentsDirectory();
       try {
+        final logFileListPath = path.join(directory.path, 'logs');
+        _instance._logFileDirectory = Directory(logFileListPath);
         final now = DateTime.now();
         final fileName = '${DateFormat('yyyyMMdd_HHmmss').format(now)}.log';
-        _instance._logFilePath ??= '${directory.path}/$fileName';
-        final file = File(_instance._logFilePath!);
-        await file.create(recursive: true);
+        final file = File(path.join(logFileListPath, fileName));
+        _instance._logFile = await file.create(recursive: true);
       } catch (e) {
         if (kDebugMode) {
           print(e);
@@ -98,8 +103,11 @@ class LoggerFactory {
     }
   }
 
-  /// log 文件存放位置
-  static String? get logFilePath => _instance._logFilePath;
+  /// 日志文件所在目录
+  static Directory? get logFileDirectory => _instance._logFileDirectory;
+
+  /// log 文件
+  static File? get logFile => _instance._logFile;
 
   /// 获取一个logger实例
   logger.Logger getLogger(LoggerOptions? options) {
@@ -111,9 +119,9 @@ class LoggerFactory {
   }
 
   logger.Logger _buildWithOptions(LoggerOptions options) {
-    if (_logFilePath != null) {
+    if (_logFile != null) {
       _printer ??= logger.SimplePrinter(printTime: true, colors: false);
-      _output ??= logger.FileOutput(file: File(_logFilePath!));
+      _output ??= logger.FileOutput(file: _logFile!);
     } else {
       _printer ??= logger.PrettyPrinter(
         stackTraceBeginIndex: options.stackTraceTranslate,
@@ -124,9 +132,9 @@ class LoggerFactory {
     }
 
     logger.LogFilter? filter;
-    if (_allowFilter != null && _logFilePath == null) {
+    if (_allowFilter != null && _logFile == null) {
       filter = _allowFilter;
-    } else if (_forbiddenFilter != null && _logFilePath == null) {
+    } else if (_forbiddenFilter != null && _logFile == null) {
       filter = _forbiddenFilter;
     } else {
       filter = logger.ProductionFilter()
