@@ -1,4 +1,6 @@
+# 0.4.0
 
+- upgrade dependencies intl to 0.19.0
 - move log files to the directory which names logs in the Application Documents Directory.
 
 # 0.3.4
